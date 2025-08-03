@@ -82,7 +82,9 @@ The number becomes 72 // 256 = 0. The process stops.
 
 The function collects these remainders ([79, 76, 76, 69, 72]) and reverses them to get the original big-endian sequence: [72, 69, 76, 76, 79], which is the message "HELLO".
 '''
-
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+print('\n' + 'Challenge 6: Bytes and Big Integers')
 from Crypto.Util.number import *
 
 # bytes_to_long() to convert a message to numbers
@@ -91,10 +93,12 @@ from Crypto.Util.number import *
 revstring = long_to_bytes(11515195063862318899931685488813747395775516287289682636499965282714637259206269)
 print(revstring)
 
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
 # XOR Starter
 # https://cryptohack.org/courses/intro/xor0/
 # XOR is a bitwise operator which returns 0 if the bits are the same, and 1 otherwise. In textbooks the XOR operator is denoted by ⊕, but in most challenges and programming languages you will see the caret ^ used instead
-
+print('\n' + 'Challenge 7: XOR Starter')
 xorString = 'label'
 xorStringChars = list(xorString)
 print(xorStringChars)
@@ -120,21 +124,66 @@ for i in unicodeConversion:
 print(convertNewValsToString)
 
 # Convert list of Unicode values back to Strings using chr() function
-
 for i in convertNewValsToString:
     print(chr(i))
 
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+# XOR Properties
+# https://cryptohack.org/courses/intro/xor1/
+print('\n' + 'Challenge 8: XOR Properties')
+# KEY1 = a6c8b6733c9b22de7bc0253266a3867df55acde8635e19c73313
+# KEY2 ^ KEY1 = 37dcb292030faa90d07eec17e3b1c6d8daf94c35d4c9191a5e1e
+# KEY2 ^ KEY3 = c1545756687e7573db23aa1c3452a098b71a7fbf0fddddde5fc1
+# FLAG ^ KEY1 ^ KEY3 ^ KEY2 = 04ee9855208a2cd59091d04767ae47963170d1660df7f56f5faf
 
+# KEY2 ^ KEY1 seems redundant based on the properties explained in this section
+key1 = 'a6c8b6733c9b22de7bc0253266a3867df55acde8635e19c73313'
+key3 = 'c1545756687e7573db23aa1c3452a098b71a7fbf0fddddde5fc1'
+key4 = '04ee9855208a2cd59091d04767ae47963170d1660df7f56f5faf'
+# Converting to bytes
+key1ToBytes = bytes.fromhex('a6c8b6733c9b22de7bc0253266a3867df55acde8635e19c73313')
+key3ToBytes = bytes.fromhex('c1545756687e7573db23aa1c3452a098b71a7fbf0fddddde5fc1')
+key4ToBytes = bytes.fromhex('04ee9855208a2cd59091d04767ae47963170d1660df7f56f5faf')
+# so if I XOR key1 and key3 together, and then XOR this to key4, KEYS 1 2 and 3 SHOULD cancel out leaving us the flag... right?
+print(key1ToBytes)
+print(key3ToBytes)
+print(key4ToBytes)
+print(zip(key1ToBytes,key3ToBytes,key4ToBytes))
 
+# XORing each byte one at a time for key1, key3, and key4, and then 
+flagBytes = bytes(b1 ^ b3 ^ b4 for b1, b3, b4 in zip(key1ToBytes,key3ToBytes,key4ToBytes))
+print(flagBytes)
+                  
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+# Favourite Byte
+print('\n' + 'Challenge 9: Favourite Byte')
+favByte = bytes.fromhex('73626960647f6b206821204f21254f7d694f7624662065622127234f726927756d')
+print(favByte)
 
+# This function XOR's 256 byte values against favByte and then 
+# only outputs the result if all characters decode to ASCII
+from pwn import xor
+for i in range(256):
+    result = xor(favByte, i)
+    try:
+        decodedString = result.decode('ascii')
+        if all(32 <= ord(j) <= 126 for j in decodedString):
+            print('Key: ' + str(i) + ' ' + 'String: ' + decodedString)
+    except UnicodeDecodeError:
+        continue
 
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+# Favourite Byte
+# This challenge is interesting because you're discovering *parts* of the key first based on what you know it might already contain. eg. crypto{}
+print('\n' + 'Challenge 10: You either know, XOR you dont')
 
+hexString2 = '0e0b213f26041e480b26217f27342e175d0e070a3c5b103e2526217f27342e175d0e077e263451150104'
+hexString2Bytes = bytes.fromhex('0e0b213f26041e480b26217f27342e175d0e070a3c5b103e2526217f27342e175d0e077e263451150104')
+keyBytes = b"crypto{"
+print(xor(hexString2Bytes, keyBytes).decode())
 
-
-
-
-
-
-
-
-
+newKeyBytes = b"myXORkey"
+print(xor(hexString2Bytes, newKeyBytes).decode())
